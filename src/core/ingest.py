@@ -16,19 +16,37 @@ def _run_parser(rofl_path: str, out_json: str):
 def ingest_rofl(rofl_path: str):
     tmp_json = f"{rofl_path}.json"
     _run_parser(rofl_path, tmp_json)
+
     with open(tmp_json, "r", encoding="utf-8") as f:
         meta = json.load(f)
     os.remove(tmp_json)
 
     match_id = meta.get("gameId")
-    participants = meta["statsJson"]["participants"]
+
+    # Handle both structures: dict or list for statsJson
+    stats = meta.get("statsJson")
+    if isinstance(stats, list):
+        # Sometimes it's a list of game stats, take first valid item
+        if len(stats) > 0 and isinstance(stats[0], dict) and "participants" in stats[0]:
+            participants = stats[0]["participants"]
+        else:
+            participants = stats
+    elif isinstance(stats, dict):
+        participants = stats.get("participants", [])
+    else:
+        participants = []
+
+    if not participants:
+        raise RuntimeError("No participants found in metadata")
+
+    from .scoring import compute_perf_score
     with _conn() as cx:
         cx.execute("INSERT INTO matches (game_id) VALUES (?)", (match_id,))
         mid = cx.execute("SELECT last_insert_rowid()").fetchone()[0]
         for p in participants:
             perf = compute_perf_score(p)
             cx.execute(
-                """INSERT INTO performances 
+                """INSERT INTO performances
                 (match_id, summoner, riot_game_name, champion, kills, deaths, assists, win, perf_score)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
@@ -44,6 +62,7 @@ def ingest_rofl(rofl_path: str):
                 )
             )
     return match_id
+
 
 def ingest_dir(directory: str):
     count = 0

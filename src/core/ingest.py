@@ -3,7 +3,7 @@ from .db import _conn
 from .scoring import compute_score_row
 
 def _run_parser(rofl_path: str, json_path: str):
-    cmd_tpl = os.getenv("PARSER_CMD", 'node parser/parse.js "{rofl}" "{json}"')
+    cmd_tpl = os.getenv("PARSER_CMD", 'node parser/parse.cjs "{rofl}" "{json}"')
     cmd = cmd_tpl.format(rofl=rofl_path, json=json_path)
     proc = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     if proc.returncode != 0:

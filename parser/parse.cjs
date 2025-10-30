@@ -11,18 +11,13 @@ if (!input || !output) {
   process.exit(1);
 }
 
-(async () => {
-  try {
-    console.log(`🚀 Starting parse for ${input}`);
-
-    const reader = new ROFLReader(input);
-    await reader.parse(); // ensure the ROFL data is loaded
-    const metadata = reader.getMetadata();
-
-    fs.writeFileSync(output, JSON.stringify(metadata, null, 2));
-    console.log(`✅ Parsed successfully: ${input} → ${output}`);
-  } catch (err) {
-    console.error("❌ Parsing failed:", err);
-    process.exit(1);
-  }
-})();
+try {
+  console.log(`🚀 Starting parse for ${input}`);
+  const reader = new ROFLReader(input);
+  const metadata = reader.getMetadata(); // FIXED — no async parse()
+  fs.writeFileSync(output, JSON.stringify(metadata, null, 2));
+  console.log(`✅ Parsed successfully: ${input} → ${output}`);
+} catch (err) {
+  console.error("❌ Parsing failed:", err);
+  process.exit(1);
+}

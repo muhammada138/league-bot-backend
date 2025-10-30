@@ -1,0 +1,11 @@
+{
+  "name": "keema-parser",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "ROFL to JSON parser bundle",
+  "main": "parse.js",
+  "scripts": {
+    "parse": "node parse.js"
+  }
+}
